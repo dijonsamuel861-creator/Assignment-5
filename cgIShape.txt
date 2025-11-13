@@ -1,0 +1,300 @@
+//
+// fill in code that creates the triangles for a cube with dimensions 1x1x1
+// on each side (and the origin in the center of the cube). with an equal
+// number of subdivisions along each cube face as given by the parameter
+//subdivisions
+//
+function makeCube (subdivisions)  {
+    
+    const vertices = [];
+    const step = 1 / subdivisions;
+    const half = 0.5;
+
+    // Define cube faces
+    const faces = [
+        { normal: [0, 0, 1], u: [1, 0, 0], v: [0, 1, 0] }, // Front
+        { normal: [0, 0, -1], u: [1, 0, 0], v: [0, 1, 0] }, // Back
+        { normal: [1, 0, 0], u: [0, 0, -1], v: [0, 1, 0] }, // Right
+        { normal: [-1, 0, 0], u: [0, 0, -1], v: [0, 1, 0] }, // Left
+        { normal: [0, 1, 0], u: [1, 0, 0], v: [0, 0, -1] }, // Top
+        { normal: [0, -1, 0], u: [1, 0, 0], v: [0, 0, -1] }, // Bottom
+    ];
+
+    for (let face of faces) {
+        for (let i = 0; i < subdivisions; i++) {
+            for (let j = 0; j < subdivisions; j++) {
+                const u0 = -half + i * step;
+                const u1 = -half + (i + 1) * step;
+                const v0 = -half + j * step;
+                const v1 = -half + (j + 1) * step;
+
+                // 4 corners of the square
+                const p0 = [
+                    face.normal[0] * half + u0 * face.u[0] + v0 * face.v[0],
+                    face.normal[1] * half + u0 * face.u[1] + v0 * face.v[1],
+                    face.normal[2] * half + u0 * face.u[2] + v0 * face.v[2],
+                ];
+                const p1 = [
+                    face.normal[0] * half + u1 * face.u[0] + v0 * face.v[0],
+                    face.normal[1] * half + u1 * face.u[1] + v0 * face.v[1],
+                    face.normal[2] * half + u1 * face.u[2] + v0 * face.v[2],
+                ];
+                const p2 = [
+                    face.normal[0] * half + u1 * face.u[0] + v1 * face.v[0],
+                    face.normal[1] * half + u1 * face.u[1] + v1 * face.v[1],
+                    face.normal[2] * half + u1 * face.u[2] + v1 * face.v[2],
+                ];
+                const p3 = [
+                    face.normal[0] * half + u0 * face.u[0] + v1 * face.v[0],
+                    face.normal[1] * half + u0 * face.u[1] + v1 * face.v[1],
+                    face.normal[2] * half + u0 * face.u[2] + v1 * face.v[2],
+                ];
+
+                // Two triangles per square
+                vertices.push(...p0, ...p1, ...p2);
+                vertices.push(...p0, ...p2, ...p3);
+            }
+        }
+    }
+    return new Float32Array(vertices);
+}
+
+    // +X and -X faces
+    makeFace('x', 0.5, 'y', 'z', false);
+    makeFace('x', -0.5, 'y', 'z', true);
+
+    // +Y and -Y faces
+    makeFace('y', 0.5, 'x', 'z', true);
+    makeFace('y', -0.5, 'x', 'z', false);
+
+    // +Z and -Z faces
+    makeFace('z', 0.5, 'x', 'y', false);
+    makeFace('z', -0.5, 'x', 'y', true);
+}
+
+
+//
+// fill in code that creates the triangles for a cylinder with diameter 1
+// and height of 1 (centered at the origin) with the number of subdivisions
+// around the base and top of the cylinder (given by radialdivision) and
+// the number of subdivisions along the surface of the cylinder given by
+//heightdivision.
+//
+function makeCylinder (radialdivision,heightdivision){
+    const vertices = [];
+    const half = 0.5;
+    const angleStep = (2 * Math.PI) / radialDiv;
+    const heightStep = 1 / heightDiv;
+
+    // Sides
+    for (let i = 0; i < radialDiv; i++) {
+        const theta0 = i * angleStep;
+        const theta1 = (i + 1) * angleStep;
+
+        for (let j = 0; j < heightDiv; j++) {
+            const y0 = -half + j * heightStep;
+            const y1 = -half + (j + 1) * heightStep;
+
+            const p0 = [Math.cos(theta0) * 0.5, y0, Math.sin(theta0) * 0.5];
+            const p1 = [Math.cos(theta1) * 0.5, y0, Math.sin(theta1) * 0.5];
+            const p2 = [Math.cos(theta1) * 0.5, y1, Math.sin(theta1) * 0.5];
+            const p3 = [Math.cos(theta0) * 0.5, y1, Math.sin(theta0) * 0.5];
+
+            vertices.push(...p0, ...p1, ...p2);
+            vertices.push(...p0, ...p2, ...p3);
+        }
+    }
+
+    // Top and bottom caps
+    for (let i = 0; i < radialDiv; i++) {
+        const theta0 = i * angleStep;
+        const theta1 = (i + 1) * angleStep;
+
+        // Top
+        vertices.push(0, half, 0);
+        vertices.push(Math.cos(theta1) * 0.5, half, Math.sin(theta1) * 0.5);
+        vertices.push(Math.cos(theta0) * 0.5, half, Math.sin(theta0) * 0.5);
+
+        // Bottom
+        vertices.push(0, -half, 0);
+        vertices.push(Math.cos(theta0) * 0.5, -half, Math.sin(theta0) * 0.5);
+        vertices.push(Math.cos(theta1) * 0.5, -half, Math.sin(theta1) * 0.5);
+    }
+
+    return new Float32Array(vertices)
+}
+
+
+//
+// fill in code that creates the triangles for a cone with diameter 1
+// and height of 1 (centered at the origin) with the number of
+// subdivisions around the base of the cone (given by radialdivision)
+// and the number of subdivisions along the surface of the cone
+//given by heightdivision.
+//
+function makeCone (radialdivision, heightdivision) {
+     const vertices = [];
+    const half = 0.5;
+    const angleStep = (2 * Math.PI) / radialDiv;
+
+    // Side triangles
+    for (let i = 0; i < radialDiv; i++) {
+        const theta0 = i * angleStep;
+        const theta1 = (i + 1) * angleStep;
+
+        for (let j = 0; j < heightDiv; j++) {
+            const y0 = -half + (j / heightDiv);
+            const y1 = -half + ((j + 1) / heightDiv);
+            const r0 = half * (1 - j / heightDiv);
+            const r1 = half * (1 - (j + 1) / heightDiv);
+
+            const p0 = [Math.cos(theta0) * r0, y0, Math.sin(theta0) * r0];
+            const p1 = [Math.cos(theta1) * r0, y0, Math.sin(theta1) * r0];
+            const p2 = [Math.cos(theta1) * r1, y1, Math.sin(theta1) * r1];
+            const p3 = [Math.cos(theta0) * r1, y1, Math.sin(theta0) * r1];
+
+            vertices.push(...p0, ...p1, ...p2);
+            vertices.push(...p0, ...p2, ...p3);
+        }
+    }
+
+    // Base
+    for (let i = 0; i < radialDiv; i++) {
+        const theta0 = i * angleStep;
+        const theta1 = (i + 1) * angleStep;
+        vertices.push(0, -half, 0);
+        vertices.push(Math.cos(theta0) * half, -half, Math.sin(theta0) * half);
+        vertices.push(Math.cos(theta1) * half, -half, Math.sin(theta1) * half);
+    }
+
+    return new Float32Array(vertices);
+}
+    
+//
+// fill in code that creates the triangles for a sphere with diameter 1
+// (centered at the origin) with number of slides (longitude) given by
+// slices and the number of stacks (lattitude) given by stacks.
+// For this function, you will implement the tessellation method based
+// on spherical coordinates as described in the video (as opposed to the
+//recursive subdivision method).
+//
+function makeSphere (slices, stacks) {
+   const vertices = [];
+    const radius = 0.5;
+
+    for (let i = 0; i < stacks; i++) {
+        const phi0 = Math.PI * (i / stacks);
+        const phi1 = Math.PI * ((i + 1) / stacks);
+
+        for (let j = 0; j < slices; j++) {
+            const theta0 = 2 * Math.PI * (j / slices);
+            const theta1 = 2 * Math.PI * ((j + 1) / slices);
+
+            const x00 = radius * Math.sin(phi0) * Math.cos(theta0);
+            const y00 = radius * Math.cos(phi0);
+            const z00 = radius * Math.sin(phi0) * Math.sin(theta0);
+
+            const x01 = radius * Math.sin(phi0) * Math.cos(theta1);
+            const y01 = radius * Math.cos(phi0);
+            const z01 = radius * Math.sin(phi0) * Math.sin(theta1);
+
+            const x10 = radius * Math.sin(phi1) * Math.cos(theta0);
+            const y10 = radius * Math.cos(phi1);
+            const z10 = radius * Math.sin(phi1) * Math.sin(theta0);
+
+            const x11 = radius * Math.sin(phi1) * Math.cos(theta1);
+            const y11 = radius * Math.cos(phi1);
+            const z11 = radius * Math.sin(phi1) * Math.sin(theta1);
+
+            // Two triangles per quad
+            vertices.push(x00, y00, z00, x10, y10, z10, x11, y11, z11);
+            vertices.push(x00, y00, z00, x11, y11, z11, x01, y01, z01);
+        }
+    }
+
+    return new Float32Array(vertices);
+}
+
+
+function makeCone(radialDiv, heightDiv) {
+    const vertices = [];
+    const half = 0.5;
+    const angleStep = (2 * Math.PI) / radialDiv;
+
+    // Side triangles
+    for (let i = 0; i < radialDiv; i++) {
+        const theta0 = i * angleStep;
+        const theta1 = (i + 1) * angleStep;
+
+        for (let j = 0; j < heightDiv; j++) {
+            const y0 = -half + (j / heightDiv);
+            const y1 = -half + ((j + 1) / heightDiv);
+            const r0 = half * (1 - j / heightDiv);
+            const r1 = half * (1 - (j + 1) / heightDiv);
+
+            const p0 = [Math.cos(theta0) * r0, y0, Math.sin(theta0) * r0];
+            const p1 = [Math.cos(theta1) * r0, y0, Math.sin(theta1) * r0];
+            const p2 = [Math.cos(theta1) * r1, y1, Math.sin(theta1) * r1];
+            const p3 = [Math.cos(theta0) * r1, y1, Math.sin(theta0) * r1];
+
+            vertices.push(...p0, ...p1, ...p2);
+            vertices.push(...p0, ...p2, ...p3);
+        }
+    }
+
+    // Base
+    for (let i = 0; i < radialDiv; i++) {
+        const theta0 = i * angleStep;
+        const theta1 = (i + 1) * angleStep;
+        vertices.push(0, -half, 0);
+        vertices.push(Math.cos(theta0) * half, -half, Math.sin(theta0) * half);
+        vertices.push(Math.cos(theta1) * half, -half, Math.sin(theta1) * half);
+    }
+
+    return new Float32Array(vertices);
+}
+
+
+
+////////////////////////////////////////////////////////////////////
+//
+//  Do not edit below this line
+//
+///////////////////////////////////////////////////////////////////
+
+function radians(degrees)
+{
+  var pi = Math.PI;
+  return degrees * (pi/180);
+}
+
+function addTriangle (x0,y0,z0,x1,y1,z1,x2,y2,z2) {
+
+    
+    var nverts = points.length / 4;
+    
+    // push first vertex
+    points.push(x0);  bary.push (1.0);
+    points.push(y0);  bary.push (0.0);
+    points.push(z0);  bary.push (0.0);
+    points.push(1.0);
+    indices.push(nverts);
+    nverts++;
+    
+    // push second vertex
+    points.push(x1); bary.push (0.0);
+    points.push(y1); bary.push (1.0);
+    points.push(z1); bary.push (0.0);
+    points.push(1.0);
+    indices.push(nverts);
+    nverts++
+    
+    // push third vertex
+    points.push(x2); bary.push (0.0);
+    points.push(y2); bary.push (0.0);
+    points.push(z2); bary.push (1.0);
+    points.push(1.0);
+    indices.push(nverts);
+    nverts++;
+}
+

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebGL Shape Viewer</title>
+    <style>
+        body { background-color: #000; margin: 0; overflow: hidden; }
+        canvas { display: block; margin: auto; background-color: black; }
+    </style>
+</head>
+<body>
+    <canvas id="glCanvas" width="600" height="600"></canvas>
+
+    <script>
+        // --- Simple WebGL setup ---
+        const canvas = document.getElementById("glCanvas");
+        const gl = canvas.getContext("webgl");
+
+        if (!gl) {
+            alert("WebGL not supported in your browser.");
+        }
+
+        // Store geometry data
+        window.points = [];
+        window.indices = [];
+        window.bary = [];
+
+        // Define addTriangle from cgIshape.js
+        function addTriangle(x0, y0, z0, x1, y1, z1, x2, y2, z2) {
+            var nverts = points.length / 4;
+
+            points.push(x0, y0, z0, 1.0);
+            indices.push(nverts++);
+            points.push(x1, y1, z1, 1.0);
+            indices.push(nverts++);
+            points.push(x2, y2, z2, 1.0);
+            indices.push(nverts++);
+        }
+
+        // --- Insert your makeCube() function here ---
+        function makeCube(subdivisions) {
+            // Front face
+            addTriangle(-0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5);
+            addTriangle(-0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5);
+
+            // Back face
+            addTriangle(-0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5);
+            addTriangle(-0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5);
+
+            // Left face
+            addTriangle(-0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5);
+            addTriangle(-0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5);
+
+            // Right face
+            addTriangle(0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5);
+            addTriangle(0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5);
+
+            // Top face
+            addTriangle(-0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
+            addTriangle(-0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5);
+
+            // Bottom face
+            addTriangle(-0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5);
+            addTriangle(-0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5);
+        }
+
+        // --- Create the cube ---
+        makeCube(1);
+
+        // Convert points array to Float32Array
+        const vertices = new Float32Array(points);
+
+        // Create buffer and load vertex data
+        const vertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+        // Vertex shader
+        const vsSource = `
+            attribute vec4 coordinates;
+            void main(void) {
+                gl_Position = coordinates;
+            }`;
+
+        // Fragment shader
+        const fsSource = `
+            void main(void) {
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }`;
+
+        // Compile shaders
+        function compileShader(src, type) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, src);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error(gl.getShaderInfoLog(shader));
+            }
+            return shader;
+        }
+
+        const vs = compileShader(vsSource, gl.VERTEX_SHADER);
+        const fs = compileShader(fsSource, gl.FRAGMENT_SHADER);
+
+        // Link shaders to a program
+        const shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vs);
+        gl.attachShader(shaderProgram, fs);
+        gl.linkProgram(shaderProgram);
+        gl.useProgram(shaderProgram);
+
+        const coord = gl.getAttribLocation(shaderProgram, "coordinates");
+        gl.vertexAttribPointer(coord, 4, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(coord);
+
+        // Draw the cube
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 4);
+    </script>
+</body>
+</html>
